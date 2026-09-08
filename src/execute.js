@@ -9,7 +9,6 @@ import {
   asStringArray,
   buildInvocationEnvForLogs,
   buildPaperclipEnv,
-  buildRuntimeToolsEnv,
   ensureAbsoluteDirectory,
   ensurePathInEnv,
   isForbiddenConfigEnvKey,
@@ -287,6 +286,14 @@ export async function execute(ctx) {
   // ---------------------------------------------------------------------------
   // Environment
   // ---------------------------------------------------------------------------
+  function buildRuntimeToolsEnv(runtimeTools) {
+    if (!runtimeTools || typeof runtimeTools !== "object") return {};
+    const result = {};
+    if (runtimeTools.token) result.PAPERCLIP_RUNTIME_TOOL_TOKEN = String(runtimeTools.token);
+    if (runtimeTools.url) result.PAPERCLIP_RUNTIME_TOOL_URL = String(runtimeTools.url);
+    return result;
+  }
+
   const envConfig = parseObject(config.env);
   const env = {
     ...buildPaperclipEnv(agent),
