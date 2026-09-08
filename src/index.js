@@ -1,70 +1,16 @@
 import { ADAPTER_TYPE, DEFAULT_COPILOT_COMMAND } from "./constants.js";
 import { execute } from "./execute.js";
 import { testEnvironment } from "./test.js";
-
-export const DEFAULT_COPILOT_LOCAL_MODEL = "auto";
-
-export const models = [
-  { id: "gpt-5.6-sol", label: "GPT-5.6 Sol" },
-  { id: "gpt-5.6-sol-fast", label: "GPT-5.6 Sol Fast" },
-  { id: "gpt-5.6-terra", label: "GPT-5.6 Terra" },
-  { id: "gpt-5.6-luna", label: "GPT-5.6 Luna" },
-  { id: "gpt-5.5", label: "GPT-5.5" },
-  { id: "gpt-5.4", label: "GPT-5.4" },
-  { id: "gpt-5.4-mini", label: "GPT-5.4 mini" },
-  { id: "gpt-5.3-codex", label: "GPT-5.3 Codex" },
-  { id: "gpt-5-mini", label: "GPT-5 mini" },
-  { id: "claude-sonnet-5", label: "Claude Sonnet 5" },
-  { id: "claude-opus-5", label: "Claude Opus 5" },
-  { id: "claude-opus-4.8", label: "Claude Opus 4.8" },
-  { id: "claude-opus-4.7", label: "Claude Opus 4.7" },
-  { id: "claude-haiku-4.5", label: "Claude Haiku 4.5" },
-  { id: "mai-code-1.1-flash", label: "MAI-Code-1.1 Flash" },
-  { id: "mai-code-1-flash-picker", label: "MAI-Code-1 Flash" },
-  { id: "gemini-3.7-flash", label: "Gemini 3.7 Flash" },
-  { id: "gemini-3.6-flash", label: "Gemini 3.6 Flash" },
-  { id: "gemini-3.5-flash", label: "Gemini 3.5 Flash" },
-  { id: "grok-4.5", label: "Grok 4.5" },
-  { id: "grok-4.6", label: "Grok 4.6" },
-  { id: "auto", label: "Auto" },
-];
-
-export const modelProfiles = [
-  {
-    key: "cheap",
-    label: "Cheap",
-    description: "Use GPT-5.4 mini as the lower-cost Copilot lane while preserving the agent's primary model.",
-    adapterConfig: {
-      model: "gpt-5.4-mini",
-    },
-    source: "adapter_default",
-  },
-];
-
-const COPILOT_MODEL_ALIASES = {
-  "claude-opus-4-8": "claude-opus-4.8",
-  "claude-opus-4-7": "claude-opus-4.7",
-  "claude-haiku-4-5": "claude-haiku-4.5",
-  "claude-sonnet-4-5": "claude-sonnet-4.5",
-  "gemini-3-7-flash": "gemini-3.7-flash",
-  "gemini-3-6-flash": "gemini-3.6-flash",
-  "gemini-3-5-flash": "gemini-3.5-flash",
-  "grok-4-5": "grok-4.5",
-  "grok-4-6": "grok-4.6",
-  "gpt-5-6-sol": "gpt-5.6-sol",
-  "gpt-5-6-terra": "gpt-5.6-terra",
-  "gpt-5-6-luna": "gpt-5.6-luna",
-  "gpt-5-5": "gpt-5.5",
-  "gpt-5-4": "gpt-5.4",
-  "gpt-5-4-mini": "gpt-5.4-mini",
-  "gpt-5-3-codex": "gpt-5.3-codex",
-};
-
-export function normalizeCopilotModel(model) {
-  if (typeof model !== "string") return "";
-  const trimmed = model.trim();
-  return COPILOT_MODEL_ALIASES[trimmed] ?? trimmed;
-}
+import {
+  DEFAULT_COPILOT_LOCAL_MODEL,
+  models,
+  modelProfiles,
+  COPILOT_MODEL_ALIASES,
+  normalizeCopilotModel,
+  listModels,
+  refreshModels,
+  detectModel,
+} from "./models.js";
 
 function nonEmpty(value) {
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
@@ -271,7 +217,9 @@ export function createServerAdapter() {
     getConfigSchema: () => configSchema,
     models,
     modelProfiles,
-    listModels: () => models,
+    listModels,
+    refreshModels,
+    detectModel,
     listModelProfiles: () => modelProfiles,
     // Copilot reads MCP servers from COPILOT_HOME/mcp-config.json, which this
     // adapter never rewrites, so the run-scoped control tools are surfaced in
@@ -284,4 +232,16 @@ export function createServerAdapter() {
   };
 }
 
-export { ADAPTER_TYPE, execute, testEnvironment };
+export {
+  ADAPTER_TYPE,
+  DEFAULT_COPILOT_LOCAL_MODEL,
+  execute,
+  testEnvironment,
+  models,
+  modelProfiles,
+  COPILOT_MODEL_ALIASES,
+  normalizeCopilotModel,
+  listModels,
+  refreshModels,
+  detectModel,
+};
