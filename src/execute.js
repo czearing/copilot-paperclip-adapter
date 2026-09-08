@@ -27,7 +27,7 @@ import {
 } from "@paperclipai/adapter-utils/server-utils";
 import { ADAPTER_TYPE, DEFAULT_COPILOT_COMMAND } from "./constants.js";
 import { normalizeCopilotModel } from "./index.js";
-import { resolveWindowsCopilotLauncher } from "./launcher.js";
+import { resolveCopilotLauncher, resolveWindowsCopilotLauncher } from "./launcher.js";
 import { isCopilotUnknownSessionError, parseCopilotJsonl, readCopilotUsageFile } from "./parse.js";
 
 /**
@@ -238,7 +238,7 @@ export async function execute(ctx) {
   // node keeps the process off cmd.exe and raises the ceiling to 32767, so
   // resolve it automatically instead of relying on per-agent configuration.
   if (commandPrefixArgs.length === 0) {
-    const launcher = await resolveWindowsCopilotLauncher(command);
+    const launcher = await resolveCopilotLauncher(command);
     if (launcher) {
       command = launcher.command;
       commandPrefixArgs = launcher.prefixArgs;
@@ -364,6 +364,8 @@ export async function execute(ctx) {
   env.GIT_TERMINAL_PROMPT = env.GIT_TERMINAL_PROMPT ?? "0";
 
   const runtimeEnv = ensurePathInEnv({ ...process.env, ...env });
+  const nodeDir = path.dirname(process.execPath);
+  runtimeEnv.PATH = [nodeDir, "/opt/homebrew/bin", "/usr/local/bin", path.join(os.homedir(), ".local", "bin"), runtimeEnv.PATH || ""].filter(Boolean).join(path.delimiter);
   const resolvedCommand = await resolveCommandForLogs(command, cwd, runtimeEnv);
   const loggedEnv = buildInvocationEnvForLogs(env, {
     runtimeEnv,

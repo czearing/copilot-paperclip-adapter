@@ -47,3 +47,35 @@ export async function resolveWindowsCopilotLauncher(command) {
 
   return null;
 }
+
+/**
+ * Resolve an absolute path to the Copilot CLI when running under minimal
+ * service environments (e.g. launchd / systemd where PATH may be restricted).
+ */
+export async function resolveCopilotLauncher(command) {
+  if (process.platform === "win32") {
+    return resolveWindowsCopilotLauncher(command);
+  }
+
+  const normalized = String(command || "").trim();
+  if (normalized !== "" && normalized !== "copilot") return null;
+
+  const home = process.env.HOME || "";
+  const candidates = [
+    path.join(path.dirname(process.execPath), "copilot"),
+    path.join(home, ".local", "bin", "copilot"),
+    "/opt/homebrew/bin/copilot",
+    "/usr/local/bin/copilot",
+  ];
+
+  for (const candidate of candidates) {
+    try {
+      await fs.access(candidate);
+      return { command: candidate, prefixArgs: [] };
+    } catch {
+      // Try next candidate.
+    }
+  }
+
+  return null;
+}

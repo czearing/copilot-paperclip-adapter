@@ -4,7 +4,7 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { asString, asStringArray, ensurePathInEnv, parseObject } from "@paperclipai/adapter-utils/server-utils";
 import { ADAPTER_TYPE, DEFAULT_COPILOT_COMMAND } from "./constants.js";
-import { resolveWindowsCopilotLauncher } from "./launcher.js";
+import { resolveCopilotLauncher, resolveWindowsCopilotLauncher } from "./launcher.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -51,6 +51,8 @@ export async function testEnvironment(ctx) {
 
   // --- COPILOT_HOME -------------------------------------------------------
   const env = ensurePathInEnv({ ...process.env });
+  const nodeDir = path.dirname(process.execPath);
+  env.PATH = [nodeDir, "/opt/homebrew/bin", "/usr/local/bin", path.join(process.env.HOME || "", ".local/bin"), env.PATH || ""].filter(Boolean).join(path.delimiter);
   if (copilotHome) {
     if (await isDirectory(copilotHome)) {
       env.COPILOT_HOME = copilotHome;
@@ -94,7 +96,7 @@ export async function testEnvironment(ctx) {
   let effectiveCommand = command;
   let effectivePrefixArgs = commandPrefixArgs;
   if (effectivePrefixArgs.length === 0) {
-    const launcher = await resolveWindowsCopilotLauncher(effectiveCommand);
+    const launcher = await resolveCopilotLauncher(effectiveCommand);
     if (launcher) {
       effectiveCommand = launcher.command;
       effectivePrefixArgs = launcher.prefixArgs;
